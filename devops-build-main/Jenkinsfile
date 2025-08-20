@@ -5,6 +5,9 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DEV_IMAGE = "cherry3104/react-app-dev"
         PROD_IMAGE = "cherry3104/react-app-prod"
+        SSH_KEY = credentials('ec2-ssh-key') 
+        EC2_USER = "ubuntu"
+        EC2_HOST = "13.126.184.15"
     }
 
     stages {
@@ -51,7 +54,10 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'chmod +x deploy.sh'
+                    sh """
+                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY} deploy.sh ${EC2_USER}@${EC2_HOST}: .deploy.sh
+                    ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${EC2_USER}@${EC2_HOST} '
+                         sh 'chmod +x deploy.sh'
                     sh './deploy.sh'
                 }
             }
